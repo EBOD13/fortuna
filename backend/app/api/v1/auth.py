@@ -32,7 +32,10 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     # JWT token
     access_token = create_access_token(data={"sub": str(db_user.user_id)})
 
-    return Token(access_token=access_token, user=UserResponse.from_orm(db_user))
+    return Token(
+        access_token=access_token,
+        user=UserResponse.model_validate(db_user)
+    )
 
 @router.post("/login", response_model=Token)
 def login_user(credentials: UserLogin, db: Session = Depends(get_db)):
