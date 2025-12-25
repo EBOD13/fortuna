@@ -12,7 +12,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import DatePicker from "react-native-date-picker";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { styles } from "./RegisterScreen.styles";
 
 const API_URL = "http://localhost:8000/api/v1";
@@ -29,7 +29,6 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Format date as YYYY-MM-DD for display and API
   const formatDate = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -37,17 +36,19 @@ export default function RegisterScreen() {
     return `${year}-${month}-${day}`;
   };
 
-  const handleDateChange = (date: Date) => {
-    setDateOfBirth(date);
+  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    // On Android, the picker closes automatically
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    
+    if (selectedDate) {
+      setDateOfBirth(selectedDate);
+    }
   };
 
   const handleRegister = async () => {
-    if (
-      !firstName.trim() ||
-      !lastName.trim() ||
-      !email.trim() ||
-      !password.trim()
-    ) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -69,22 +70,12 @@ export default function RegisterScreen() {
       const data = await response.json();
 
       if (!response.ok) {
-        console.log("Error response:", data);
         throw new Error(data.detail || JSON.stringify(data));
       }
 
       await AsyncStorage.setItem("token", data.access_token);
       Alert.alert("Success", "Account created successfully!");
-      
-      // Clear form
-      setFirstName("");
-      setLastName("");
-      setDateOfBirth(new Date());
-      setPhoneNumber("");
-      setEmail("");
-      setPassword("");
     } catch (err: any) {
-      console.log("Full error:", err);
       Alert.alert("Error", err.message);
     } finally {
       setLoading(false);
@@ -93,16 +84,8 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View
-        style={[
-          styles.container,
-          { paddingTop: insets.top + 24 },
-        ]}
-      >
-        {/* Logo */}
+      <View style={[styles.container, { paddingTop: insets.top + 24 }]}>
         <Text style={styles.logo}>Fortuna</Text>
-
-        {/* Title */}
         <Text style={styles.title}>Create an account</Text>
 
         {/* Name Row */}
@@ -116,7 +99,6 @@ export default function RegisterScreen() {
               editable={!loading}
             />
           </View>
-
           <View style={styles.halfField}>
             <Text style={styles.label}>Last name</Text>
             <TextInput
@@ -128,7 +110,7 @@ export default function RegisterScreen() {
           </View>
         </View>
 
-        {/* Date of Birth with Date Picker */}
+        {/* Date of Birth */}
         <View style={styles.field}>
           <Text style={styles.label}>Date of birth</Text>
           <TouchableOpacity
@@ -140,21 +122,25 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </View>
 
-        <DatePicker
-          modal
-          open={showDatePicker}
-          date={dateOfBirth}
-          onConfirm={(date) => {
-            handleDateChange(date);
-            setShowDatePicker(false);
-          }}
-          onCancel={() => {
-            setShowDatePicker(false);
-          }}
-          mode="date"
-          title="Select your date of birth"
-          maximumDate={new Date()}
-        />
+        {/* Date Picker - iOS shows inline, Android shows modal */}
+        {showDatePicker && (
+          <>
+            {Platform.OS === 'ios' && (
+              <View style={{ alignItems: 'flex-end', marginBottom: 8 }}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={{ color: '#007AFF', fontSize: 16 }}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            <DateTimePicker
+              value={dateOfBirth}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              maximumDate={new Date()}
+            />
+          </>
+        )}
 
         <View style={styles.field}>
           <Text style={styles.label}>Phone number</Text>
@@ -190,12 +176,8 @@ export default function RegisterScreen() {
           />
         </View>
 
-        {/* Primary Button */}
         <TouchableOpacity
-          style={[
-            styles.primaryButton,
-            loading && styles.primaryButtonDisabled,
-          ]}
+          style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
           onPress={handleRegister}
           disabled={loading}
         >
@@ -204,10 +186,8 @@ export default function RegisterScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* Footer */}
         <Text style={styles.footerText}>
-          Already have an account?{" "}
-          <Text style={styles.link}>Sign in</Text>
+          Already have an account? <Text style={styles.link}>Sign in</Text>
         </Text>
       </View>
     </SafeAreaView>

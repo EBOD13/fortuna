@@ -28,7 +28,7 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-
+    
     # JWT token
     access_token = create_access_token(data={"sub": str(db_user.user_id)})
 

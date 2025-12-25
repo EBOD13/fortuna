@@ -1,3 +1,8 @@
+# backend/app/api/v1/goals.py
+"""
+Financial Goals API Endpoints
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -7,7 +12,7 @@ from datetime import date, datetime
 from app.database import get_db
 from app.api.deps import get_current_user
 from app.models.user import User
-from app.models.financial_goal import FinancialGoal, GoalMilestone, GoalProgressHistory
+from app.models.goal import FinancialGoal, GoalMilestone, GoalProgressHistory
 from app.schemas.goal import (
     FinancialGoalCreate, FinancialGoalUpdate, FinancialGoalResponse, FinancialGoalWithDetails,
     GoalMilestoneCreate, GoalMilestoneResponse,
