@@ -1,4 +1,7 @@
 {
   "name": "fortuna",
-  "displayName": "fortuna"
+  "displayName": "fortuna",
+  "plugins": [
+    "expo-secure-store"
+  ]
 }

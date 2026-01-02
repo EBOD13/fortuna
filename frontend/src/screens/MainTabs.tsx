@@ -1,38 +1,69 @@
 // src/navigation/MainTabs.tsx
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SFSymbol } from 'react-native-sfsymbols';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/types';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import HomeIcon from '../components/icons/HomeIcon';
+import LogScreen from './LogScreen';
+import ManageScreen from './ManageScreen';
+import HomeScreen from './HomeScreen';
+import PlansScreen from './PlanScreen';
+import InsightScreen from './InsightScreen';
 
-// Placeholder screens
-const HomeScreen = () => (
-  <View style={styles.screen}>
-    <Text style={styles.text}>Home</Text>
+// src/navigation/MainTabs.tsx
+import { StackNavigationProp } from '@react-navigation/stack';
+
+// Inside AppHeader:
+import { useAuth } from '../context/AuthContext';
+
+const AppHeader = () => {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  return (
+    <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      {/* Logout */}
+      <TouchableOpacity style={styles.headerButton} onPress={handleLogout}>
+        <SFSymbol name="rectangle.portrait.and.arrow.right" size={22} color="#DC2626" />
+      </TouchableOpacity>
+
+      {/* App Name */}
+      <Text style={styles.appName}>Fortun</Text>
+
+      {/* Profile */}
+      <TouchableOpacity
+        style={styles.headerButton}
+        onPress={() => navigation.navigate('ProfileScreen')} 
+      >
+        <SFSymbol name="person.circle" size={24} color="#000" />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+// Screen wrapper with header
+const ScreenWithHeader = ({ children }: { children: React.ReactNode }) => (
+  <View style={styles.screenContainer}>
+    <AppHeader />
+    {children}
   </View>
 );
 
-const LogScreen = () => (
-  <View style={styles.screen}>
-    <Text style={styles.text}>Log</Text>
-  </View>
-);
-
-const PlanningScreen = () => (
-  <View style={styles.screen}>
-    <Text style={styles.text}>Planning</Text>
-  </View>
-);
-
-const DependentsScreen = () => (
-  <View style={styles.screen}>
-    <Text style={styles.text}>Dependents</Text>
-  </View>
-);
 
 const AccountsScreen = () => (
-  <View style={styles.screen}>
-    <Text style={styles.text}>Accounts</Text>
-  </View>
+  <ScreenWithHeader>
+    <View style={styles.screen}>
+      <Text style={styles.text}>Accounts</Text>
+    </View>
+  </ScreenWithHeader>
 );
 
 const Tab = createBottomTabNavigator();
@@ -63,13 +94,13 @@ export default function MainTabs() {
         component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <SFSymbol name="house.fill" size={size} color={color} />
+            <HomeIcon size={size} color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="Plans"
-        component={PlanningScreen}
+        name="Plan"
+        component={PlansScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <SFSymbol name="target" size={size} color={color} />
@@ -81,14 +112,13 @@ export default function MainTabs() {
         component={LogScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <SFSymbol name="plus.circle.fill" size={size} color={color} />
+            <SFSymbol name="plus.app.fill" size={36} color={color} />
           ),
         }}
       />
-
       <Tab.Screen
         name="Manage"
-        component={DependentsScreen}
+        component={ManageScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <SFSymbol name="square.stack.3d.up.fill" size={size} color={color} />
@@ -96,11 +126,11 @@ export default function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="More"
-        component={AccountsScreen}
+        name="Insight"
+        component={InsightScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <SFSymbol name="ellipsis.circle.fill" size={size} color={color} />
+            <SFSymbol name="sparkles.rectangle.stack.fill" size={size} color={color} />
           ),
         }}
       />
@@ -109,11 +139,33 @@ export default function MainTabs() {
 }
 
 const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+    backgroundColor: '#F2F2F7',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
+  },
+  headerButton: {
+    padding: 8,
+  },
+  appName: {
+    fontSize: 20,
+    fontStyle: 'italic',
+    fontWeight: '600',
+    color: '#000',
+  },
   screen: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
   },
   text: {
     fontSize: 24,
